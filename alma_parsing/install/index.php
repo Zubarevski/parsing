@@ -1,0 +1,64 @@
+<?
+Class alma_parsing extends CModule
+{
+    var $MODULE_ID = "alma_parsing";
+    var $MODULE_VERSION;
+    var $MODULE_VERSION_DATE;
+    var $MODULE_NAME;
+    var $MODULE_DESCRIPTION;
+    var $MODULE_CSS;
+
+    function alma_parsing()
+    {
+        $arModuleVersion = array();
+
+        $path = str_replace("\\", "/", __FILE__);
+        $path = substr($path, 0, strlen($path) - strlen("/index.php"));
+        include($path."/version.php");
+        if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
+        {
+            $this->MODULE_VERSION = $arModuleVersion["VERSION"];
+            $this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
+        }
+        $this->MODULE_NAME = "Alma-парсинг";
+        $this->MODULE_DESCRIPTION = "Это модуль парсинга ( модуль написан - \"<a href=\"http://alma-com.ru\">Alma-com.ru</a>\" )";
+        $this->PARTNER_NAME = "alma"; 
+        $this->PARTNER_URI = "http://alma-com.ru";
+    }
+
+    function InstallFiles($arParams = array())
+    {
+        if($_ENV["COMPUTERNAME"]!='BX')
+        {
+            CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/alma_parsing/install/admin", $_SERVER["DOCUMENT_ROOT"]."/bitrix/admin");
+        }
+        return true;
+    }
+
+    function UnInstallFiles()
+    {
+        DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/alma_parsing/install/admin/", $_SERVER["DOCUMENT_ROOT"]."/bitrix/admin");
+        return true;
+    }
+
+    function DoInstall()
+    {
+        global $DOCUMENT_ROOT, $APPLICATION;
+        // Install events
+        RegisterModuleDependences("iblock","OnAfterIBlockElementUpdate","alma_parsing","alma_parsing","onBeforeElementUpdateHandler");
+        RegisterModule($this->MODULE_ID);
+        $this->InstallFiles(array());
+        $APPLICATION->IncludeAdminFile("Установка модуля Alma-upload", $DOCUMENT_ROOT."/bitrix/modules/alma_parsing/install/step.php");
+        return true;
+    }
+
+    function DoUninstall()
+    {
+        global $DOCUMENT_ROOT, $APPLICATION;
+        UnRegisterModuleDependences("iblock","OnAfterIBlockElementUpdate","alma_parsing","alma_parsing","onBeforeElementUpdateHandler");
+        UnRegisterModule($this->MODULE_ID);
+        $this->UnInstallFiles();
+        $APPLICATION->IncludeAdminFile("Деинсталляция модуля Alma-parsing", $DOCUMENT_ROOT."/bitrix/modules/alma_parsing/install/unstep.php");
+        return true;
+    }
+}
